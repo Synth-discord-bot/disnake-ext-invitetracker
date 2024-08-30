@@ -1,48 +1,35 @@
-import logging
-from typing import TypeVar, Dict, Optional, Union
+from .. import logger, T
 
 from disnake import Invite, Guild, Member, errors
+
+# from disnake.ext.invitetracker.tracker import InviteTracker
+from typing import Optional, Union
 from disnake.ext.commands import InteractionBot, Bot
 
-__all__ = ("InviteTracker",)
-logger = logging.getLogger(__name__)
-T = TypeVar("T", bound=Dict[int, Dict[str, Invite]])
 
-
-class InviteTracker:
-    cache = None
-
-    def __init__(
-        self,
-        bot: Union[InteractionBot, Bot],
-        auto_work: bool = True
-    ) -> None:
-        """ Initialize the InviteTracker class. """
-        self.bot: Union[InteractionBot, Bot] = bot
-        self.auto_work: bool = auto_work
-        self.cache: T = {}
-
-        if self.auto_work:
-            self.bot.add_listener(self._load_invites, "on_ready")
-            self.bot.add_listener(self._add_guild, "on_guild_join")
-            self.bot.add_listener(self._remove_guild, "on_guild_remove")
-            self.bot.add_listener(self._create_invite, "on_invite_create")
-            self.bot.add_listener(self._delete_invite, "on_invite_delete")
+class Cache:
+    def __init__(self, bot: Union[InteractionBot, Bot], cache) -> None:
+        self.bot = bot
+        self.cache = cache
 
     async def _load_invites(self) -> T:
-        """ Load all invites from a guild. """
+        """Load all invites from a guild."""
         for guild in self.bot.guilds:
             try:
                 self.cache[guild.id] = {}
 
                 for invite in await guild.invites():
                     self.cache[guild.id][invite.code] = invite
-                    logger.debug(f"Loaded invite {invite.code} from guild {guild.id}")
+                    logger.debug(
+                        f"[+] [CACHE] Loaded invite {invite.code} from guild {guild.id}"
+                    )
 
             except Exception as error:
-                logger.error(f"Error while loading invites from guild {guild.id}: {error}")
+                logger.error(
+                    f"[-] [CACHE] Error while loading invites from guild {guild.id}: {error}"
+                )
 
-        logger.info("Loaded all invites from guilds.")
+        logger.info("[+] [CACHE] Loaded all invites from guilds.")
 
         return self.cache
 
@@ -58,12 +45,14 @@ class InviteTracker:
         try:
             for invite in await guild.invites():
                 self.cache[guild.id][invite.code] = invite
-                logger.debug(f"Added invite {invite.code} from guild {guild.id}")
+                logger.debug(
+                    f"[+] [CACHE] Added invite {invite.code} from guild {guild.id}"
+                )
 
         except (errors.HTTPException, errors.Forbidden):
-            logger.error(f"[x] Failed to add invites from guild {guild.id}")
+            logger.error(f"[x] [CACHE] Failed to add invites from guild {guild.id}")
 
-        logger.info(f"[+] Added guild {guild.id} to the cache.")
+        logger.info(f"[+] [CACHE] Added guild {guild.id} to the cache.")
 
         return self.cache
 
@@ -77,9 +66,11 @@ class InviteTracker:
         try:
             self.cache.pop(guild.id)
         except KeyError:
-            logger.error(f"[x] Failed to remove guild {guild.id} from the cache.")
+            logger.error(
+                f"[x] [CACHE] Failed to remove guild {guild.id} from the cache."
+            )
 
-        logger.debug(f"[+] Removed guild {guild.id} from the cache.")
+        logger.debug(f"[+] [CACHE] Removed guild {guild.id} from the cache.")
 
         return self.cache
 
@@ -95,7 +86,9 @@ class InviteTracker:
 
         self.cache[invite.guild.id][invite.code] = invite
 
-        logger.info(f"[+] Created invite {invite.code} from guild {invite.guild.id}")
+        logger.info(
+            f"[+] [CACHE] Created invite {invite.code} from guild {invite.guild.id}"
+        )
 
         return self.cache
 
@@ -111,7 +104,9 @@ class InviteTracker:
 
         if invite.code in self.cache[invite.guild.id]:
             self.cache[invite.guild.id].pop(invite.code)
-            logger.info(f"[+] Deleted invite {invite.code} from guild {invite.guild.id}")
+            logger.info(
+                f"[+] [CACHE] Deleted invite {invite.code} from guild {invite.guild.id}"
+            )
 
         return self.cache
 
@@ -126,7 +121,7 @@ class InviteTracker:
         invite = None
 
         if not guild_cache:
-            logger.error(f"[x] Guild {member.guild.id} not found in the cache.")
+            logger.error(f"[x] [CACHE] Guild {member.guild.id} not found in the cache.")
             return None
 
         for invite_raw in await member.guild.invites():
@@ -136,7 +131,9 @@ class InviteTracker:
                 cached_invite.uses = invite_raw.uses
                 invite = invite_raw
 
-                logger.info(f"[+] Found invite {invite.code} from guild {member.guild.id}")
+                logger.info(
+                    f"[+] [CACHE] Found invite {invite.code} from guild {member.guild.id}"
+                )
                 break
 
         return invite

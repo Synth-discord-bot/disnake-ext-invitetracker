@@ -1,8 +1,9 @@
-import collections
+from typing import Dict, TypeVar
 
-from .invite_tracker import *
+from disnake import Invite
+from .logger.logger import logger
 
-_VersionInfo = collections.namedtuple("_VersionInfo", "major release serial")
+T = TypeVar("T", bound=Dict[int, Dict[str, Invite]])
 
-version = "1.0"
-version_info = _VersionInfo(1, 0, "final", 0)
+version = "1.1"
+__all__ = ("InviteTracker",)

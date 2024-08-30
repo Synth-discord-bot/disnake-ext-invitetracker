@@ -17,6 +17,8 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Communications",
     "Topic :: Documentation",
@@ -37,13 +39,19 @@ extras_require = {
 
 packages = [
     "disnake.ext.invitetracker",
+    "disnake.ext.invitetracker.database",
+    "disnake.ext.invitetracker.database.models",
+    "disnake.ext.invitetracker.logger",
+    "disnake.ext.invitetracker.util",
 ]
 
 project_urls = {
-    "Source": "https://github.com/earluv/disnake-ext-invitetracker",
+    "Source": "https://github.com/Synth-discord-bot/disnake-ext-invitetracker",
 }
 
-_version_regex = r"^version = ('|\")((?:[0-9]+\.)*[0-9]+(?:\.?([a-z]+)(?:\.?[0-9])?)?)\1$"
+_version_regex = (
+    r"^version = ('|\")((?:[0-9]+\.)*[0-9]+(?:\.?([a-z]+)(?:\.?[0-9])?)?)\1$"
+)
 
 with open("disnake/ext/invitetracker/__init__.py") as stream:
     match = re.search(_version_regex, stream.read(), re.MULTILINE)
@@ -54,23 +62,27 @@ if match.group(3) is not None:
     try:
         import subprocess
 
-        process = subprocess.Popen(["git", "rev-list", "--count", "HEAD"], stdout=subprocess.PIPE)
+        process = subprocess.Popen(
+            ["git", "rev-list", "--count", "HEAD"], stdout=subprocess.PIPE
+        )
         out, _ = process.communicate()
         if out:
             version += out.decode("utf-8").strip()
 
-        process = subprocess.Popen(["git", "rev-parse", "--short", "HEAD"], stdout=subprocess.PIPE)
+        process = subprocess.Popen(
+            ["git", "rev-parse", "--short", "HEAD"], stdout=subprocess.PIPE
+        )
         out, _ = process.communicate()
         if out:
             version += "+g" + out.decode("utf-8").strip()
-    except (Exception) as e:
+    except Exception as e:
         pass
 
 
 setuptools.setup(
-    author="Lukef",
+    author="Lukef, The Synth Development Team",
     classifiers=classifiers,
-    description="A module that allows you to track invitations",
+    description="A module that allows you to track invitations with Disnake",
     long_description=long_description,
     long_description_content_type="text/markdown",
     extras_require=extras_require,
@@ -79,6 +91,6 @@ setuptools.setup(
     packages=packages,
     project_urls=project_urls,
     python_requires=">=3.8.0",
-    url="https://github.com/earluv/disnake-ext-invitetracker",
+    url="https://github.com/Synth-discord-bot/disnake-ext-invitetracker",
     version=version,
 )
