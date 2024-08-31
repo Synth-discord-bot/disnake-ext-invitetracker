@@ -5,5 +5,5 @@ from .logger.logger import logger
 
 T = TypeVar("T", bound=Dict[int, Dict[str, Invite]])
 
-version = "1.1"
+version = "1.2"
 __all__ = ("InviteTracker",)
