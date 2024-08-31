@@ -1,12 +1,17 @@
-from tortoise import fields
-from .invite import InviteModel
+from tortoise import Model, fields
 
 
-class Tracker(InviteModel):
-    uses = fields.BigIntField(default=0)
+class InviteModel(Model):
+    code = fields.CharField(max_length=255)
+    uses = fields.IntField(default=0)
 
     class Meta:
-        table = "tracker"
+        table = "invite"
 
-    def __str__(self) -> str:
-        return f"uses={self.uses}"
+
+class GuildModel(Model):
+    id = fields.BigIntField(pk=True)
+    invites = fields.ManyToManyField("models.InviteModel", related_name="guilds")
+
+    class Meta:
+        table = "guild"

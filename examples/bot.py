@@ -10,9 +10,12 @@ invite = InviteTracker(db_url="sqlite://invitetracker.sqlite3", bot=bot, use_db=
 
 @bot.event
 async def on_member_join(member: disnake.Member):
-    original_invite: disnake.Invite = await invite.get_invite_cache(member)
-    logger.info(f"[+] [CACHE] {member} joined using {original_invite.code}")
-    original_invite: disnake.Invite = await invite.get_invite_db(member)
-    logger.info(f"[+] [DB] {member} joined using {original_invite.code}")
+    cache_invite: disnake.Invite = await invite.get_invite_cache(member)
+    if cache_invite:
+        logger.info(f"[+] [CACHE] {member} joined using {cache_invite.code}")
+    db_invite: disnake.Invite = await invite.get_invite_db(member)
+    if db_invite:
+        logger.info(f"[+] [DB] {member} joined using {db_invite.code}")
+
 
 bot.run("TOKEN")

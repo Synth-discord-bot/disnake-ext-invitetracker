@@ -131,7 +131,7 @@ class Cache:
                 cached_invite.uses = invite_raw.uses
                 invite = invite_raw
 
-                logger.info(
+                logger.debug(
                     f"[+] [CACHE] Found invite {invite.code} from guild {member.guild.id}"
                 )
                 break

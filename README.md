@@ -17,8 +17,8 @@
 </div>
 
 > [!WARNING]
-> **[Python 3.8](https://python.org) or higher is required**
-> [Disnake](https://github.com/DisnakeDev/disnake) is required
+> **[Python 3.8](https://python.org)** or higher is required
+> **[Disnake](https://github.com/DisnakeDev/disnake)** is required
 
 Then install the extension by running one of the following commands:
 
@@ -33,13 +33,7 @@ pip install git+https://github.com/Synth-discord-bot/disnake-ext-invitetracker
 <div align="center">
     <h2 id="important">Important ⚠️</h2>
 </div>
-
-> [!WARNING]
-> Have some problems with database sync (for example, cache has true invite link, but database does not have it)
-> Need to implement some features
-
-> [!IMPORTANT]
-> Saving uses to invite code (not into guild right now)
+- Everything we want to do, we've done.
 
 <div align="center">
     <h2 id="links">Links 🔗</h2>
