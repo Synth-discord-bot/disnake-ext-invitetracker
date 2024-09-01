@@ -1,11 +1,12 @@
 from collections import defaultdict
+
 # from disnake.ext.invitetracker.tracker import InviteTracker
 from typing import Optional, Union
 
 from disnake import Invite, Guild, Member, errors
 from disnake.ext.commands import InteractionBot, Bot
 
-from .. import logger, T
+from disnake.ext.invitetracker import logger, T
 
 
 class Cache:

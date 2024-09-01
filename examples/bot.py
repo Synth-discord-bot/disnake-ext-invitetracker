@@ -12,9 +12,7 @@ bot = commands.Bot(
     command_sync_flags=commands.CommandSyncFlags.all(),
     intents=disnake.Intents.all(),
 )
-bot.invite_tracker = InviteTracker(
-    bot=bot, db_url="sqlite://invitetracker.sqlite3", use_db=True
-)
+bot.invite_tracker = InviteTracker(bot=bot, db_url="sqlite://invitetracker.sqlite3")
 
 
 @bot.event

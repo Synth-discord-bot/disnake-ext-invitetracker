@@ -9,7 +9,7 @@ from ..database.models import (
     UserInvitedModel,
 )
 
-from .. import logger
+from disnake.ext.invitetracker import logger
 from ..util.cache import InviteCache
 
 

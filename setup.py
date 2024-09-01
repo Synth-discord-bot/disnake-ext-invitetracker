@@ -41,7 +41,6 @@ packages = [
     "disnake.ext.invitetracker",
     "disnake.ext.invitetracker.database",
     "disnake.ext.invitetracker.database.models",
-    "disnake.ext.invitetracker.logger",
     "disnake.ext.invitetracker.util",
 ]
 
