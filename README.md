@@ -18,7 +18,11 @@
 
 > [!WARNING]
 > **[Python 3.8](https://python.org)** or higher is required
+>
+> **[Tortoise-ORM](https://github.com/tortoise/tortoise-orm)** is required
+>
 > **[Disnake](https://github.com/DisnakeDev/disnake)** is required
+
 
 Then install the extension by running one of the following commands:
 
@@ -33,7 +37,7 @@ pip install git+https://github.com/Synth-discord-bot/disnake-ext-invitetracker
 <div align="center">
     <h2 id="important">Important ⚠️</h2>
 </div>
-- Everything we want to do, we've done.
+- This extension works only with Tortoise ORM!
 
 <div align="center">
     <h2 id="links">Links 🔗</h2>
@@ -46,4 +50,4 @@ pip install git+https://github.com/Synth-discord-bot/disnake-ext-invitetracker
     <h2>License</h2>
 </div>
 
-Copyright (c) 2024 The Synth Development Team
+Copyright © 2024 The Synth Development Team

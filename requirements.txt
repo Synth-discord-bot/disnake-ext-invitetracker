@@ -1,3 +1,6 @@
-disnake
+disnake~=2.9.2
 tortoise-orm
-loguru
+loguru~=0.7.2
+tortoise~=0.1.1
+async-lru~=2.0.4
+setuptools~=74.0.0
