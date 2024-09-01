@@ -1,13 +1,11 @@
-import logging
 from collections import defaultdict
-
-from .. import logger, T
-
-from disnake import Invite, Guild, Member, errors
-
 # from disnake.ext.invitetracker.tracker import InviteTracker
 from typing import Optional, Union
+
+from disnake import Invite, Guild, Member, errors
 from disnake.ext.commands import InteractionBot, Bot
+
+from .. import logger, T
 
 
 class Cache:
@@ -168,9 +166,12 @@ class InviteCache:
         -------
         Invites from the cache
         """
-        invites = self._cache.get(guild_id, None)
-        self._debug(f"Found {len(invites)} invites in cache in guild {guild_id}")
-        return self._cache.get(guild_id, None)
+        invites = self._cache.get(guild_id)
+        if invites is None:
+            self._debug(f"No invites in cache in guild {guild_id}")
+        else:
+            self._debug(f"Found {len(invites)} invites in cache in guild {guild_id}")
+        return invites
 
     def update(
         self, guild_id: int, invites: Union[dict[str, Invite], Invite]
@@ -194,7 +195,9 @@ class InviteCache:
             invites = old_invites
 
         self._cache[guild_id] = invites
-        self._debug(f"Updated cache with {len(invites)} invites in guild {guild_id}")
+        self._debug(
+            f"Updated cache with {len(invites or [])} invites in guild {guild_id}"
+        )
         return self._cache.get(guild_id, {})
 
     def delete_invite(
@@ -222,7 +225,8 @@ class InviteCache:
             self._debug(f"Deleted invite {invite_code} from guild {guild_id}")
             return old_value
 
-        return
+        self._debug(f"Invite {invite_code} not found in guild {guild_id}")
+        return None
 
     def add_invite(self, guild_id: int, invite: Invite) -> Invite:
         """Add an invitation to the cache.
