@@ -2,9 +2,8 @@ from .. import logger
 
 from disnake import Invite, Guild, Member, errors
 from typing import Optional, Union
-from disnake.ext.invitetracker.database.models import GuildModel, InviteModel
+from disnake.ext.invitetracker.database.models import GuildModel, GuildInviteModel, UserModel, UserInvitedModel, UserInviteModel
 from disnake.ext.commands import InteractionBot, Bot
-from tortoise.expressions import Q
 from tortoise.exceptions import DoesNotExist
 import traceback
 
@@ -27,13 +26,13 @@ class Database:
 
     async def find_invite_in_guild(
         self, guild_id: int, code: str
-    ) -> Optional[InviteModel]:
+    ) -> Optional[GuildInviteModel]:
         """
         Find an invite in a guild.
 
         :param guild_id: int: The guild ID.
         :param code: str: The invite code.
-        :return: Optional[InviteModel]: The InviteModel object or None if not found.
+        :return: Optional[GuildInviteModel]: The GuildInviteModel object or None if not found.
         """
         guild = await GuildModel.get_or_none(id=guild_id).prefetch_related("invites")
 
@@ -43,8 +42,24 @@ class Database:
         invite = await guild.invites.filter(code=code).first()
 
         if invite is None:
-            invite = await InviteModel.create(code=code, uses=0)
+            invite = await GuildInviteModel.create(code=code, uses=0)
             await guild.invites.add(invite)
+
+        return invite
+    
+    async def find_invite_in_user(
+        self, member_id: int, code: str
+    ) -> Optional[GuildInviteModel]:
+        user = await UserModel.get_or_none(id=member_id).prefetch_related("invited")
+
+        if user is None:
+            user = await UserModel.create(id=member_id)
+
+        invite = await user.invites.filter(code=code).first()
+
+        if invite is None:
+            invite = await UserInviteModel.create(code=code)
+            await user.invites.add(invite)
 
         return invite
 
@@ -181,3 +196,47 @@ class Database:
             logger.error(f"[x] [DB] An error occurred: {str(e)}")
 
         return invite
+    
+    async def get_from_invited_member(self, member: Member) -> Optional[Member]:
+        """
+        Получить участника, который пригласил данного участника.
+
+        :param member: disnake.Member: Участник, для которого нужно найти пригласившего.
+        :return: Optional[disnake.Member]: Участник, который пригласил или None, если не найден.
+        """
+        try:
+            user = await UserModel.get_or_none(id=member.id).prefetch_related("invited")
+
+            if user is None:
+                logger.warning(f"[x] [DB] Пользователь {member.id} не найден в базе данных.")
+                return None
+
+            invite_entry = await user.invited.first()
+
+            if invite_entry is None:
+                logger.warning(f"[x] [DB] Приглашение для пользователя {member.id} не найдено.")
+                return None
+
+            inviting_user_invite = await UserInviteModel.get_or_none(code=invite_entry.code)
+            
+            if inviting_user_invite is None:
+                logger.warning(f"[x] [DB] Пользователь, пригласивший через код {invite_entry.code}, не найден.")
+                return None
+
+            inviting_user = await UserModel.get_or_none(invited__code=invite_entry.code)
+
+            if inviting_user is None:
+                logger.warning(f"[x] [DB] Пользователь, использовавший код {invite_entry.code}, не найден.")
+                return None
+
+            inviting_member = member.guild.get_member(inviting_user.id)
+
+            if inviting_member is None:
+                logger.warning(f"[x] [DB] Участник с ID {inviting_user.id} не найден в гильдии.")
+                return None
+
+            return inviting_member
+
+        except Exception as e:
+            logger.error(f"[x] [DB] Ошибка при получении пригласившего участника: {str(e)}")
+            return None

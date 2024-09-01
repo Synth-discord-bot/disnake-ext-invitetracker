@@ -1,4 +1,3 @@
-from os import getenv
 import disnake
 from disnake.ext import commands
 from disnake.ext.invitetracker.tracker import InviteTracker
@@ -13,9 +12,9 @@ async def on_member_join(member: disnake.Member):
     cache_invite: disnake.Invite = await invite.get_invite_cache(member)
     if cache_invite:
         logger.info(f"[+] [CACHE] {member} joined using {cache_invite.code}")
-    db_invite: disnake.Invite = await invite.get_invite_db(member)
+    db_invite: disnake.Member = await invite.get_from_invite_db(member)
     if db_invite:
-        logger.info(f"[+] [DB] {member} joined using {db_invite.code}")
+        logger.info(f"[+] [DB] {member} joined using {db_invite}")
 
 
 bot.run("TOKEN")

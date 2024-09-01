@@ -79,3 +79,8 @@ class InviteTracker:
         if self.use_db:
             return await self.database_instance.get_invite(member)
         return None
+    
+    async def get_from_invite_db(self, member: Member) -> Member:
+        if self.use_db:
+            return await self.database_instance.get_from_invited_member(member)
+        return None
