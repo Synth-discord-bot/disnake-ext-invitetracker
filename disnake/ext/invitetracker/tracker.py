@@ -10,28 +10,79 @@ from .util.database import Database
 
 
 class InviteTracker:
+
     def __init__(
         self,
         bot: Union[InteractionBot, Bot],
         db_url: str,
-        work: bool = True,
+        background: bool = True,
+        initialize_db: bool = True,
         use_cache: bool = True,
         debug: bool = False,
     ) -> None:
+        """
+        Initialize the InviteTracker.
+
+        :param bot: The bot instance.
+        :type bot: Union[InteractionBot, Bot]
+        :param db_url: The database URL to use.
+        :type db_url: Str
+        :param background: Run the invite tracker tasks in the background.
+        :type background: Bool
+        :param initialize_db: Initialize the database during startup.
+
+        **TIP**
+        - If you set `background` to True, you must initialize the process of updating cache manually.
+
+        **WARNING:** *IF YOU ARE USING CUSTOM MODELS IN YOUR DATABASE, YOU MUST INITIALIZE THIS MODEL MANUALLY:*
+
+        *disnake.ext.invitetracker.database.models.tracker*
+
+        For example::
+
+            Async def init_database():
+                logger.info("# Initializing database...")
+                await Tortoise.init(
+                    db_url=settings.DATABASE_URL,
+                    modules={"models": ["your_module.models", "disnake.ext.invitetracker.database.models.__init__"]},
+                )
+                await Tortoise.generate_schemas()
+                logger.info("# Database initialized")
+
+        *OTHERWISE YOU WILL BREAK YOUR DATABASE INITIALIZATION*
+
+        *IF YOU ARE NOT USING CUSTOM MODELS, SET PARAM* `initialize_db` *TO True*
+
+        :type initialize_db: Bool
+        :param use_cache: Cache the invites in dictionaries for faster lookups.
+        :type use_cache: Bool
+        :param debug: Enable debug mode.
+        :type debug: Bool
+        """
+
         self.bot: Union[InteractionBot, Bot] = bot
         self.db_url: str = db_url
         self.use_cache: bool = use_cache
-        self.work: bool = work
+        self.initialize_db: bool = initialize_db
+        self.background: bool = background
         self.debug = debug
 
-        if self.work:
-            self.bot.add_listener(self._load_database, "on_connect")
+        if self.initialize_db:
+            self.bot.loop.create_task(self._load_database())
             self.bot.add_listener(self._unload_database, "on_disconnect")
 
-            self.database_instance = Database(self.bot, debug=self.debug)
-            self.bot.add_listener(
-                self.database_instance.load_invites_to_cache, "on_ready"
-            )
+        self.database_instance = Database(self.bot, debug=self.debug)
+
+        if self.background:
+            # self.bot.add_listener(self._load_database, "on_connect")
+            # self.bot.add_listener(self._unload_database, "on_disconnect")
+
+            self.bot.loop.create_task(self.database_instance.load_invites_to_cache())
+
+            # self.bot.add_listener(
+            # self.database_instance.load_invites_to_cache, "on_ready"
+            # )
+
             self.bot.add_listener(
                 self.database_instance.add_new_guild_invites, "on_guild_join"
             )
@@ -46,6 +97,7 @@ class InviteTracker:
     async def _load_database(self) -> None:
         """Load the database."""
         await init_database(db_url=self.db_url)
+        # await init_database()
 
     @staticmethod
     async def _unload_database() -> None:

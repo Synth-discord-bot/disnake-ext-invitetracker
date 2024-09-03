@@ -1,4 +1,4 @@
-from typing import Optional, Union
+import typing
 
 from async_lru import alru_cache
 from disnake import Guild, Invite, Member, errors
@@ -9,16 +9,18 @@ from ..database.models import (
     UserInvitedModel,
 )
 
-from disnake.ext.invitetracker import logger
+from ..logger import logger
 from ..util.cache import InviteCache
 
 
 class Database:
-    def __init__(self, bot: Union[InteractionBot, Bot], debug: bool = False) -> None:
+    def __init__(
+        self, bot: typing.Union[InteractionBot, Bot], debug: bool = False
+    ) -> None:
         self.bot = bot
         self.invite_cache = InviteCache(debug=debug)
 
-    async def _get_invite_for_member(self, member: Member) -> Optional[Invite]:
+    async def _get_invite_for_member(self, member: Member) -> typing.Optional[Invite]:
         logger.info(f"Checking invites for member {member}")
         current_invites = await member.guild.invites()
 
@@ -46,7 +48,7 @@ class Database:
     @staticmethod
     async def find_invite_in_guild(
         guild_id: int, code: str
-    ) -> Optional[GuildInviteModel]:
+    ) -> typing.Optional[GuildInviteModel]:
         """
         Find an invitation in a guild (Database only)
 
@@ -68,7 +70,7 @@ class Database:
         return invite
 
     @alru_cache(maxsize=None)
-    async def get_guild_invites(self, guild: Guild) -> Optional[list[Invite]]:
+    async def get_guild_invites(self, guild: Guild) -> typing.Optional[list[Invite]]:
         """
         Get all invites from a guild.
 
@@ -176,22 +178,6 @@ class Database:
         await UserInvitedModel.filter(invite_code=invite.code).delete()
         logger.info(f"Invite {invite.code} deleted from the database")
 
-    # async def del(self, guild_id: int = None, member_id: Union[disnake.Member, int] = None) -> None:
-    #     """
-    #     Delete an invitation from the database.
-    #
-    #     Parameters
-    #     ----------
-    #     guild_id: int
-    #         The ID of the guild
-    #     code: str
-    #         The code of the invite
-    #     """
-    #     logger.info(f"Deleting invite {} from the database")
-    #     # await UserInvitedModel.filter(guild_id=guild_id, invite_code=code).delete()
-    #     await UserInvitedModel.filter(id=member.id, guild_id=member.guild.id).delete()
-    #     logger.info(f"Invite {code} deleted from the database")
-
     async def add_member(self, member: Member) -> None:
         """
         Add a member to the database.
@@ -238,255 +224,3 @@ class Database:
             await result.delete()
 
         logger.info(f"Member {member.name} deleted from the database")
-
-    # async def _get_guild(self, guild_id: int) -> Optional[GuildModel]:
-    #     """
-    #     Get a GuildModel object from a code and a guild ID.
-    #
-    #     :param guild_id: int: The guild ID.
-    #     :return: Optional[GuildModel]: The GuildModel object or None if not found.
-    #     """
-    #     guild = await GuildModel.get_or_none(id=guild_id)
-    #     if not guild:
-    #         guild = await GuildModel.create(id=guild_id)
-    #     return guild
-    #
-    # async def find_invite_in_guild(
-    #     self, guild_id: int, code: str
-    # ) -> Optional[GuildInviteModel]:
-    #     """
-    #     Find an invite in a guild.
-    #
-    #     :param guild_id: int: The guild ID.
-    #     :param code: str: The invite code.
-    #     :return: Optional[GuildInviteModel]: The GuildInviteModel object or None if not found.
-    #     """
-    #     guild = await GuildModel.get_or_none(id=guild_id).prefetch_related("invites")
-    #
-    #     if guild is None:
-    #         guild = await GuildModel.create(id=guild_id)
-    #
-    #     invite = await guild.invites.filter(code=code).first()
-    #
-    #     if invite is None:
-    #         invite = await GuildInviteModel.create(code=code, uses=0)
-    #         await guild.invites.add(invite)
-    #
-    #     return invite
-    #
-    # async def find_invite_in_user(
-    #     self, member_id: int, code: str
-    # ) -> Optional[GuildInviteModel]:
-    #     user = await UserModel.get_or_none(id=member_id).prefetch_related("invited")
-    #
-    #     if user is None:
-    #         user = await UserModel.create(id=member_id)
-    #
-    #     invite = await user.invites.filter(code=code).first()
-    #
-    #     if invite is None:
-    #         invite = await UserInviteModel.create(code=code)
-    #         await user.invites.add(invite)
-    #
-    #     return invite
-    #
-    # async def _load_invites(self) -> GuildModel:
-    #     """Load all invites from a guild."""
-    #     for guild in self.bot.guilds:
-    #         try:
-    #             for invite in await guild.invites():
-    #                 data = await self.find_invite_in_guild(guild.id, invite.code)
-    #                 data.uses = invite.uses
-    #                 await data.save()
-    #                 # guild = await self._get_guild(guild.id)
-    #                 # data_invite = await GuildModel.get_invite(invite.code)
-    #                 # data_invite.uses = invite.uses
-    #                 logger.debug(
-    #                     f"[+] [DB] Loaded invite {invite.code} from guild {guild.id}"
-    #                 )
-    #
-    #         except Exception as error:
-    #             logger.error(
-    #                 f"[x] [DB] Error while loading invites from guild {guild.id}: {traceback.format_exc()}"
-    #             )
-    #
-    #     logger.info("[+] [DB] Loaded all invites from guilds.")
-    #
-    #     return data
-    #
-    # async def _add_guild(self, guild: GuildModel) -> GuildModel:
-    #     """
-    #     Add a guild to the cache.
-    #
-    #     :param guild: disnake.Guild: New guild to add to the cache.
-    #     :return: T: The updated cache.
-    #     """
-    #     try:
-    #         for invite in await guild.invites():
-    #             data = await self.find_invite_in_guild(guild.id, invite.code)
-    #             data.uses = invite.uses
-    #             await data.save()
-    #             logger.debug(
-    #                 f"[+] [DB] Added invite {invite.code} from guild {guild.id}"
-    #             )
-    #
-    #     except (errors.HTTPException, errors.Forbidden):
-    #         logger.error(f"[x] [DB] Failed to add invites from guild {guild.id}")
-    #
-    #     logger.info(f"[+] [DB] Added guild {guild.id} to the cache.")
-    #
-    #     return data
-    #
-    # async def _remove_guild(self, guild: GuildModel) -> GuildModel:
-    #     """
-    #     Remove a guild from the cache.
-    #
-    #     :param guild: disnake.Guild: The guild to remove from the cache.
-    #     :return: T: The updated cache.
-    #     """
-    #     try:
-    #         for invite in await guild.invites():
-    #             data = await self._get_guild(guild.id)
-    #             await GuildModel.delete(data)
-    #     except KeyError:
-    #         logger.error(f"[x] [DB] Failed to remove guild {guild.id} from the cache.")
-    #
-    #     logger.debug(f"[+] [DB] Removed guild {guild.id} from the cache.")
-    #
-    #     return data
-    #
-    # async def _create_invite(self, invite: Invite) -> GuildModel:
-    #     """
-    #     Create an invitation and add it to the cache.
-    #
-    #     :param invite: disnake.Invite: The invite to create.
-    #     :return: T: The updated cache.
-    #     """
-    #     data = await self.find_invite_in_guild(invite.guild.id, invite.code)
-    #     data.uses = invite.uses
-    #     await data.save()
-    #
-    #     logger.info(
-    #         f"[+] [DB] Created invite {invite.code} from guild {invite.guild.id}"
-    #     )
-    #
-    #     return data
-    #
-    # async def _delete_invite(self, invite: Invite) -> GuildModel:
-    #     """
-    #     Delete an invitation from the cache.
-    #
-    #     :param invite: disnake.Invite: The invite to delete.
-    #     :return: T: The updated cache.
-    #     """
-    #     data = await self.find_invite_in_guild(invite.guild.id, invite.code)
-    #     await data.delete()
-    #     logger.info(
-    #         f"[+] [DB] Deleted invite {invite.code} from guild {invite.guild.id}"
-    #     )
-    #
-    #     return data
-    #
-    # async def get_invite(self, member: Member) -> Optional[Invite]:
-    #     guild_id = member.guild.id
-    #     invite = None
-    #
-    #     try:
-    #         for invite_raw in await member.guild.invites():
-    #             try:
-    #                 cached_invite = await self.find_invite_in_guild(
-    #                     guild_id, invite_raw.code
-    #                 )
-    #
-    #                 logger.debug(f"[+] [DB] Found invite raw code: {invite_raw.code}")
-    #                 logger.debug(
-    #                     f"[+] [DB] Found invite cached code: {cached_invite.code}"
-    #                 )
-    #
-    #                 if invite_raw.uses > cached_invite.uses:
-    #                     cached_invite.uses = invite_raw.uses
-    #                     await cached_invite.save()
-    #                     invite = invite_raw
-    #                     logger.debug(
-    #                         f"[+] [DB] Updated invite uses: {invite.code} ({invite.uses})"
-    #                     )
-    #
-    #                 # if invite_raw.code != cached_invite.code:
-    #                 #     logger.warning(f"[!] Mismatch between DB code {cached_invite.code} and cache code {invite_raw.code}")
-    #
-    #             except DoesNotExist:
-    #                 logger.warning(
-    #                     f"[x] [DB] Invite {invite_raw.code} not found in cache for guild {guild_id}"
-    #                 )
-    #
-    #     except Exception as e:
-    #         logger.error(f"[x] [DB] An error occurred: {str(e)}")
-    #
-    #     return invite
-    #
-    # async def get_from_invited_member(self, member: Member) -> Optional[Member]:
-    #     """
-    #     Получить участника, который пригласил данного участника.
-    #
-    #     :param member: disnake.Member: Участник, для которого нужно найти пригласившего.
-    #     :return: Optional[disnake.Member]: Участник, который пригласил или None, если не найден.
-    #     """
-    #     try:
-    #         # Найти информацию о пользователе, который был приглашен
-    #         invited_entry = await UserInvitedModel.get_or_none(id=member.id)
-    #
-    #         if not invited_entry:
-    #             logger.warning(
-    #                 f"[x] [DB] Пользователь {member.id} не найден в базе данных."
-    #             )
-    #
-    #             # Попробуем получить приглашение из кеша
-    #             cache_invite = await self.get_invite(member)
-    #             # cache_invite = await self.cache_instance.get_invite(member)
-    #             if not cache_invite:
-    #                 logger.warning(
-    #                     f"[x] [CACHE] Не удалось найти инвайт для пользователя {member.id}."
-    #                 )
-    #                 return None
-    #
-    #             # Записываем пользователя в базу данных
-    #             invited_entry = await UserInvitedModel.create(
-    #                 id=member.id, code=cache_invite.code, joined_at=member.joined_at
-    #             )
-    #             logger.info(
-    #                 f"[+] [DB] Пользователь {member.id} добавлен в базу данных с инвайтом {cache_invite.code}."
-    #             )
-    #
-    #         # Найти приглашение по коду, через которое участник присоединился
-    #         invite = await UserInviteModel.get_or_none(code=invited_entry.code)
-    #
-    #         if not invite:
-    #             logger.warning(
-    #                 f"[x] [DB] Приглашение с кодом {invited_entry.code} не найдено."
-    #             )
-    #             return None
-    #
-    #         # Найти пригласившего участника
-    #         inviting_user = await UserModel.get_or_none(id=invite.invited_id)
-    #
-    #         if not inviting_user:
-    #             logger.warning(
-    #                 f"[x] [DB] Пользователь, использовавший код {invite.code}, не найден."
-    #             )
-    #             return None
-    #
-    #         inviting_member = member.guild.get_member(inviting_user.id)
-    #
-    #         if not inviting_member:
-    #             logger.warning(
-    #                 f"[x] [DB] Участник с ID {inviting_user.id} не найден в гильдии."
-    #             )
-    #             return None
-    #
-    #         return inviting_member
-    #
-    #     except Exception as e:
-    #         logger.error(
-    #             f"[x] [DB] Ошибка при получении пригласившего участника: {str(e)}"
-    #         )
-    #         return None

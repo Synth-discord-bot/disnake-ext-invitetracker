@@ -1,10 +1,10 @@
 from tortoise import Tortoise
-
-from .. import logger
+from ..logger import logger
 
 
 async def init_database(db_url: str):
     """Initialize the database."""
+
     await Tortoise.init(
         db_url=db_url,
         modules={"models": ["disnake.ext.invitetracker.database.models.__init__"]},
